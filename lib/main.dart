@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intro_screen_onboarding_flutter/intro_app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+// SharedPreferences 인스턴스를 어디서든 접근 가능하도록 전역 변수로 선언
+// late : 나중에 값을 꼭 할당하겠다는 의미.
+late SharedPreferences prefs;
+
+void main() async {
+  // main() 함수에서 async를 사용하려면 필요
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Shared_preferences 인스턴스 생성
+  prefs = await SharedPreferences.getInstance();
+
   runApp(MyApp());
 }
 
@@ -9,14 +20,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // SharedPreferences 에서 온보딩 완료 여부 조회
+    // isOnboarded에 해당하는 값에서 null,을 반환하는 경우, false를 기본 값으로 지정.
+    bool isOnboarded = prefs.getBool('isOnboarded') ?? false;
+
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Who am i',
+      home: isOnboarded ? HomePage() : TestScreen(),
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        // backgroundColor: Color.fromARGB(255, 36, 34, 34),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'yeongju',
       ),
-      home: TestScreen(),
     );
   }
 }
@@ -24,24 +37,19 @@ class MyApp extends StatelessWidget {
 class TestScreen extends StatelessWidget {
   final List<Introduction> list = [
     Introduction(
-      title: 'Buy & Sell',
-      subTitle: 'Browse the menu and order directly from the application',
-      imageUrl: 'assets/images/intellij.png',
+      title: '수료 전의 나',
+      subTitle: '떡잎방범대',
+      imageUrl: 'assets/images/one.png',
     ),
     Introduction(
-      title: 'Delivery',
-      subTitle: 'Your order will be immediately collected and',
-      imageUrl: 'assets/images/mysql.png',
+      title: '수료 후의 나',
+      subTitle: '파이아!!!',
+      imageUrl: 'assets/images/two.png',
     ),
     Introduction(
-      title: 'Receive Money',
-      subTitle: 'Pick up delivery at your door and enjoy groceries',
-      imageUrl: 'assets/images/figma.png',
-    ),
-    Introduction(
-      title: 'Finish',
-      subTitle: 'Browse the menu and order directly from the application',
-      imageUrl: 'assets/images/figma.png',
+      title: '10년 후의 나',
+      subTitle: '울라울라',
+      imageUrl: 'assets/images/three.png',
     ),
   ];
 
@@ -50,6 +58,8 @@ class TestScreen extends StatelessWidget {
     return IntroScreenOnboarding(
       introductionList: list,
       onTapSkipButton: () {
+        // 마지막 페이지가 나오거나 skip을 해서 Homepage로 가기 전에 isOnboarded를 ture로 바꾸어준다.
+        prefs.setBool('isOnboarded', true);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -69,6 +79,14 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Home Page'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              prefs.clear();
+            },
+            icon: Icon(Icons.delete),
+          )
+        ],
       ),
       body: Center(
         child: Text(
